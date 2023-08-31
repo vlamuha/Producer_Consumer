@@ -20,7 +20,8 @@ class OrderListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["orders"] = self.get_queryset()
+        orders_list = Order.objects.filter(employee=self.request.user)
+        context["orders_list"] = orders_list
         return context
 
 
