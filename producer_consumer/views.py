@@ -19,7 +19,8 @@ class OrderListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        orders_list = Order.objects.filter(employee=self.request.user)
+        orders_list = Order.objects.filter().values('task_id', 'name', 'employee__first_name',
+                                                                 'employee__position')
         context["orders_list"] = orders_list
         return context
 
