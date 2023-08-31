@@ -3,6 +3,7 @@ from datetime import datetime
 import telebot
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.views.generic import ListView
 
@@ -11,6 +12,8 @@ from producer_consumer.models import Order
 
 class OrderListView(LoginRequiredMixin, ListView):
     model = Order
+    template_name = "producer_consumer/order_list.html"
+    paginate_by = 5
 
     def get_queryset(self):
         return Order.objects.filter(employee=self.request.user)
@@ -22,20 +25,16 @@ class OrderListView(LoginRequiredMixin, ListView):
 
 
 @login_required
-def delete_order(request, order_id):
-    order = Order.objects.get(pk=order_id)
+def delete_order(request, pk):
+    order = Order.objects.get(pk=pk)
     order.delete()
+    return redirect('producer_consumer:order_list')
 
-    message = f"Задача No{pk}-{task_id} під назвою {name} була опрацьована {employee} у {datetime} ".format(
-        pk=order.pk,
-        task_id=order.task_id,
-        name=order.name,
-        employee=f"{order.employee.first_name} {order.employee.position}",
-        datetime=datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
-    )
 
-    bot = telebot.TeleBot(token="BOT_API_KEY")
+def send_message(request, pk):
+    order = Order.objects.get(pk=pk)
+    employee = order.employee
+    message = f"Задача No{pk}-{order.task_id} під назвою {order.name} була опрацьована {employee.first_name}" \
+              f" {employee.position} у {datetime.datetime.now()}"
 
-    bot.send_message(chat_id=order.employee.username, text=message)
-
-    return redirect("orders")
+    return HttpResponse(message)

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <title>Order List</title>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>Task ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Employee</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+                <tr>
+                    <td>{{ order.task_id }}</td>
+                    <td>{{ order.name }}</td>
+                    <td>{{ order.description }}</td>
+                    <td>{{ order.employee.first_name }} - {{ order.employee.position }}</td>
+                    <td>
+                        <form method="post" action="{% url 'producer_consumer:delete_order' order.pk %}">
+                            {% csrf_token %}
+                            <input type="submit" value="Delete">
+                        </form>
+                        <form method="post" action="{% url 'producer_consumer:send_message' order.pk %}">
+                            {% csrf_token %}
+                            <input type="submit" value="Send Message">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
