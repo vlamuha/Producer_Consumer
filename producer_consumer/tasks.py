@@ -1,12 +1,29 @@
-from celery import shared_task
-from random import choice
-from .models import Order, Employee
+from celery import Celery
+from django.core.management.base import BaseCommand
+from django.conf import settings
+
+from producer_consumer.models import Order, Employee
 
 
-@shared_task
-def create_order(task_id, name, description):
-    employees = Employee.objects.all()
-    selected_employee = choice(employees)
-    Order.objects.create(
-        task_id=task_id, name=name, description=description, employee=selected_employee
-    )
+class Command(BaseCommand):
+
+    def handle(self, *args, **kwargs):
+        celery_app = Celery(
+            app_name=settings.CELERY_APP_NAME,
+            broker=settings.CELERY_BROKER_URL,
+            backend=settings.CELERY_RESULT_BACKEND,
+        )
+
+        @celery_app.task(name='add_order')
+        def add_order():
+            employee = Employee.objects.filter(probation=False).order_by('?').first()
+
+            order = Order(
+                task_id=1,
+                name='Задача No1',
+                description='Це перша задача',
+                employee=employee,
+            )
+            order.save()
+
+        celery_app.send_task('add_order')
