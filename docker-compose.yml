@@ -8,7 +8,7 @@ services:
     ports:
       - 8000:8000
     environment:
-      - DJANGO_SECRET_KEY=your_secret_key
+      - DJANGO_SECRET_KEY=SECRET_KEY
       - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
 
   db:
