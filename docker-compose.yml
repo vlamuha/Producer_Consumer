@@ -2,18 +2,38 @@ version: '3.8'
 
 services:
   web:
-    image: my_project
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: django:3.2.10-alpine
+    container_name: producer-consumer-web
+    restart: always
     ports:
       - 8000:8000
-    depends_on:
-      - db
+    environment:
+      - DJANGO_SECRET_KEY=your_secret_key
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
 
   db:
-    image: postgres
+    image: postgres:13.3-alpine
+    container_name: producer-consumer-db
+    restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: my_database
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+
+  celery:
+    image: django:3.2.10-alpine
+    container_name: producer-consumer-celery
+    restart: always
+    depends_on:
+      - web
+      - db
+    command: celery worker --app=producer_consumer.celery_app.celery --loglevel=info
+
+  flower:
+    image: mher/flower
+    container_name: producer-consumer-flower
+    restart: always
+    depends_on:
+      - celery
+    ports:
+      - 5555:5555
